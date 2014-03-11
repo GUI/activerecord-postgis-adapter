@@ -88,9 +88,14 @@ module ActiveRecord  # :nodoc:
               col_name_ = col_name_["column_name"]
               # TODO: get oid and fmod from jdbc
             end
-            oid_ = OID::TYPE_MAP.fetch(oid_.to_i, fmod_.to_i) {
-              OID::Identity.new
-            }
+
+            # OIDs not used with the JDBC adapter.
+            if(defined?(::ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::OID))
+              oid_ = OID::TYPE_MAP.fetch(oid_.to_i, fmod_.to_i) {
+                OID::Identity.new
+              }
+            end
+
             SpatialColumn.new(@rgeo_factory_settings, table_name_, col_name_, default_, oid_, type_,
               notnull_ == 'f', type_ =~ /geometry/i ? spatial_info_[col_name_] : nil)
           end

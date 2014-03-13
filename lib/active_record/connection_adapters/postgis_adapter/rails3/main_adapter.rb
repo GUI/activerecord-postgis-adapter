@@ -78,7 +78,6 @@ module ActiveRecord  # :nodoc:
 
           # Transform the normal Column objects into SpatialColumn objects.
           original_columns.map do |column|
-            #puts "DEFAULT: #{column.default.inspect}"
             opts_ = (column.sql_type =~ /geometry/i ? spatial_info_[column.name] : nil) || {}
             opts_.merge!({
               :table_name => table_name_,

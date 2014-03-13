@@ -72,19 +72,32 @@ module ActiveRecord  # :nodoc:
           end
         end
 
-        def columns(table_name_, *args)
-          original_columns = super(table_name_, *args)
-          spatial_info_ = spatial_column_info(table_name_)
 
-          # Transform the normal Column objects into SpatialColumn objects.
-          original_columns.map do |column|
-            # The oid_type isn't publicly accessible on the Column object, so
-            # grab the instance variable (not ideal, but seems cleaner than
-            # re-implementing the how the original columns get created across
-            # adapters and versions).
-            oid_ = column.instance_variable_get(:@oid_type)
-            opts_ = (column.sql_type =~ /geometry/i) ? spatial_info_[column.name] : nil
-            SpatialColumn.new(@rgeo_factory_settings, table_name_, column.name, column.default.to_s, oid_, column.sql_type, column.null, opts_)
+        def columns(table_name_, name_=nil)
+          # FULL REPLACEMENT. RE-CHECK ON NEW VERSIONS.
+          # We needed to return a spatial column subclass.
+          table_name_ = table_name_.to_s
+          spatial_info_ = spatial_column_info(table_name_)
+          column_definitions(table_name_).collect do |col_name_, type_, default_, notnull_, oid_, fmod_|
+            # JDBC support: JDBC adapter returns a hash for column definitions,
+            # instead of an array of values.
+            if col_name_.kind_of?(::Hash)
+              notnull_ = col_name_["column_not_null"]
+              default_ = col_name_["column_default"]
+              type_ = col_name_["column_type"]
+              col_name_ = col_name_["column_name"]
+              # TODO: get oid and fmod from jdbc
+            end
+
+            # OIDs not used with the JDBC adapter.
+            if(defined?(::ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::OID))
+              oid_ = OID::TYPE_MAP.fetch(oid_.to_i, fmod_.to_i) {
+                OID::Identity.new
+              }
+            end
+
+            SpatialColumn.new(@rgeo_factory_settings, table_name_, col_name_, default_, oid_, type_,
+              notnull_ == 'f', type_ =~ /geometry/i ? spatial_info_[col_name_] : nil)
           end
         end
 

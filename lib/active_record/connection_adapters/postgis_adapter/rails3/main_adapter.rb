@@ -72,19 +72,26 @@ module ActiveRecord  # :nodoc:
         end
 
 
-        def columns(table_name_, *args)
-          original_columns = super(table_name_, *args)
+        def columns(table_name_, name_=nil)
+          # FULL REPLACEMENT. RE-CHECK ON NEW VERSIONS.
+          # We needed to return a spatial column subclass.
+          table_name_ = table_name_.to_s
           spatial_info_ = spatial_column_info(table_name_)
+          column_definitions(table_name_).collect do |col_name_, type_, default_, notnull_|
+            # JDBC support: JDBC adapter returns a hash for column definitions,
+            # instead of an array of values.
+            if col_name_.kind_of?(::Hash)
+              notnull_ = col_name_["column_not_null"]
+              default_ = col_name_["column_default"]
+              type_ = col_name_["column_type"]
+              col_name_ = col_name_["column_name"]
+            end
 
-          # Transform the normal Column objects into SpatialColumn objects.
-          original_columns.map do |column|
-            opts_ = (column.sql_type =~ /geometry/i ? spatial_info_[column.name] : nil) || {}
-            opts_.merge!({
-              :table_name => table_name_,
-              :factory_settings => @rgeo_factory_settings
-            })
-
-            SpatialColumn.new(column.name, column.default.to_s, column.sql_type, column.null, opts_)
+            SpatialColumn.new(col_name_, default_, type_, notnull_ == 'f',
+              ((type_ =~ /geometry/i ? spatial_info_[col_name_] : nil) || {}).merge({
+                  :table_name => table_name_,
+                  :factory_settings => @rgeo_factory_settings
+                }))
           end
         end
 

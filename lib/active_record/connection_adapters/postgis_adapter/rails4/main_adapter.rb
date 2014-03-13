@@ -89,6 +89,12 @@ module ActiveRecord  # :nodoc:
               # TODO: get oid and fmod from jdbc
             end
 
+            # JDBC gets true/false in Rails 4, where other platforms get
+            # 't'/'f' strings.
+            if(notnull_.is_a?(String))
+              notnull_ = (notnull_ == 't')
+            end
+
             # OIDs not used with the JDBC adapter.
             if(defined?(::ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::OID))
               oid_ = OID::TYPE_MAP.fetch(oid_.to_i, fmod_.to_i) {
@@ -97,7 +103,7 @@ module ActiveRecord  # :nodoc:
             end
 
             SpatialColumn.new(@rgeo_factory_settings, table_name_, col_name_, default_, oid_, type_,
-              notnull_ == 'f', type_ =~ /geometry/i ? spatial_info_[col_name_] : nil)
+              !notnull_, type_ =~ /geometry/i ? spatial_info_[col_name_] : nil)
           end
         end
 

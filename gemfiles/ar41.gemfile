@@ -3,7 +3,7 @@
 source "https://rubygems.org"
 
 gem "pg", "~> 0.17", :platform => :ruby
-gem "byebug", :platform => :ruby
+gem "byebug", :platform => [:ruby_20, :ruby_21]
 gem "activerecord", "~> 4.1.0"
 
 gemspec :path => "../"

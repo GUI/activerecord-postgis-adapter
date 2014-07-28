@@ -4,4 +4,4 @@ source "https://rubygems.org"
 gemspec
 
 gem 'pg', '~> 0.17', platform: :ruby
-gem 'byebug', platform: :ruby
+gem 'byebug', platform: [:ruby_20, :ruby_21]

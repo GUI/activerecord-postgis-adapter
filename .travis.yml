@@ -1,42 +1,18 @@
 language: ruby
 rvm:
-  - 1.8.7
   - 1.9.3
   - 2.0.0
-  - 2.1.0
-  - jruby-18mode
-  - jruby-19mode
-  - rbx
+  - 2.1.2
+  - rbx-2
 env:
-  - POSTGIS=1.5
   - POSTGIS=2.0
 gemfile:
-  - gemfiles/ar30.gemfile
-  - gemfiles/ar31.gemfile
-  - gemfiles/ar32.gemfile
   - gemfiles/ar40.gemfile
+  - gemfiles/ar41.gemfile
+allow_failures:
+  - rbx-2
 matrix:
   exclude:
-    - rvm: 1.8.7
-      gemfile: gemfiles/ar40.gemfile
-      env: POSTGIS=1.5
-    - rvm: 1.8.7
-      gemfile: gemfiles/ar40.gemfile
-      env: POSTGIS=2.0
-    - rvm: jruby-18mode
-      gemfile: gemfiles/ar40.gemfile
-      env: POSTGIS=1.5
-    - rvm: jruby-18mode
-      gemfile: gemfiles/ar40.gemfile
-      env: POSTGIS=2.0
-# TEMP: jdbc adapters don't seem to work with Rails 4 yet, as of 2013-02-27
-    - rvm: jruby-19mode
-      gemfile: gemfiles/ar40.gemfile
-      env: POSTGIS=1.5
-    - rvm: jruby-19mode
-      gemfile: gemfiles/ar40.gemfile
-      env: POSTGIS=2.0
-# END TEMP
 before_install: ./travis/before_install.sh
 before_script: ./travis/before_script.sh
 script: bundle exec rake test
